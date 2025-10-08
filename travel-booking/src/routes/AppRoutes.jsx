@@ -32,7 +32,7 @@ function AppRoutes() {
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>
-                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="" element={<Dashboard />} />
                     <Route path="roles" element={<RolePage />} />
                     <Route path="users" element={<UserPage />} />
                     <Route path="contacts" element={<ContactPage />} />
