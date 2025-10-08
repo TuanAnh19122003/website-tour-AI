@@ -58,7 +58,7 @@ class BookingService {
         const origin = req.get('origin') || `http://${req.hostname}:${req.socket.localPort}`;
 
         return await Booking.sequelize.transaction(async (t) => {
-            // Tạo booking chính
+            // 1️⃣ Tạo booking chính
             const booking = await Booking.create({
                 userId,
                 total_price: computedTotal.toFixed(2),
@@ -67,7 +67,7 @@ class BookingService {
                 status: paymentMethod === 'paypal' ? 'pending' : 'paid',
             }, { transaction: t });
 
-            // Tạo booking items
+            // 2️⃣ Tạo booking items
             const bookingItemsData = items.map(item => ({
                 bookingId: booking.id,
                 tourId: item.tourId,
@@ -76,9 +76,18 @@ class BookingService {
             }));
             await BookingItem.bulkCreate(bookingItemsData, { transaction: t });
 
+            // 3️⃣ Giảm chỗ còn lại trong tours
+            for (const item of bookingItemsData) {
+                const tour = await Tour.findByPk(item.tourId, { transaction: t });
+                if (!tour) throw new Error(`Tour with id ${item.tourId} not found`);
+
+                const newAvailable = Math.max(tour.available_people - item.quantity, 0);
+                await tour.update({ available_people: newAvailable }, { transaction: t });
+            }
+
+            // 4️⃣ Thanh toán PayPal (nếu có)
             if (paymentMethod === 'cod') return { booking };
 
-            // PayPal
             const itemsUSD = bookingItemsData.map(item => ({
                 ...item,
                 unitAmount: parseFloat((item.price / 24000).toFixed(2)), // VND -> USD
@@ -112,7 +121,6 @@ class BookingService {
                 },
             });
 
-
             const response = await paypalClient().execute(request);
             const paypalOrderId = response.result.id;
             const approveUrl = response.result.links.find(link => link.rel === 'approve')?.href;
@@ -124,76 +132,49 @@ class BookingService {
         });
     }
 
-
-    // ===================== CẬP NHẬT BOOKING =====================
-    static async update(bookingId, { userId, note, items }) {
-        return await Booking.sequelize.transaction(async (t) => {
-            const booking = await Booking.findByPk(bookingId, { transaction: t });
-            if (!booking) throw new Error('Booking not found');
-
-            booking.userId = userId ?? booking.userId;
-            booking.note = note ?? '';
-
-            await BookingItem.destroy({ where: { bookingId }, transaction: t });
-
-            const bookingItemsData = items.map((item) => ({
-                bookingId,
-                tourId: item.tourId,
-                quantity: item.quantity,
-                price: item.price,
-            }));
-
-            await BookingItem.bulkCreate(bookingItemsData, { transaction: t });
-
-            const totalPrice = bookingItemsData.reduce((sum, item) => sum + item.quantity * item.price, 0);
-            booking.total_price = totalPrice;
-            await booking.save({ transaction: t });
-
-            return booking;
-        });
-    }
-
     // ===================== CẬP NHẬT TRẠNG THÁI BOOKING =====================
     static async updateBookingStatus(bookingId, status) {
         if (!bookingId) throw new Error('Invalid booking ID');
-        const booking = await Booking.findByPk(bookingId);
+        const booking = await Booking.findByPk(bookingId, {
+            include: [{ model: BookingItem, as: 'items' }],
+        });
         if (!booking) throw new Error('Booking not found');
+
+        // 🔁 Nếu huỷ booking → hoàn chỗ lại
+        if (status === 'cancelled' && booking.items && booking.items.length > 0) {
+            for (const item of booking.items) {
+                const tour = await Tour.findByPk(item.tourId);
+                if (tour) {
+                    const restored = Math.min(tour.available_people + item.quantity, tour.max_people);
+                    await tour.update({ available_people: restored });
+                }
+            }
+        }
+
         booking.status = status;
         await booking.save();
         return booking;
     }
 
-    // ===================== CẬP NHẬT SỐ LƯỢNG TOUR TRONG BOOKING =====================
-    static async updateBookingItemQuantity(bookingItemId, newQuantity) {
-        return await BookingItem.sequelize.transaction(async (t) => {
-            const bookingItem = await BookingItem.findByPk(bookingItemId, {
-                include: [{ model: Tour, as: 'tour' }],
-                transaction: t,
-            });
-
-            if (!bookingItem) throw new Error('Booking item not found');
-
-            bookingItem.quantity = newQuantity;
-            await bookingItem.save({ transaction: t });
-
-            const bookingId = bookingItem.bookingId;
-            const allItems = await BookingItem.findAll({ where: { bookingId }, transaction: t });
-
-            const newTotal = allItems.reduce((sum, item) => sum + item.quantity * item.price, 0);
-            const booking = await Booking.findByPk(bookingId, { transaction: t });
-
-            booking.total_price = newTotal;
-            await booking.save({ transaction: t });
-
-            return { bookingItem, newTotal };
-        });
-    }
-
     // ===================== XOÁ BOOKING =====================
     static async delete(bookingId) {
         return await Booking.sequelize.transaction(async (t) => {
-            const booking = await Booking.findByPk(bookingId, { transaction: t });
+            const booking = await Booking.findByPk(bookingId, {
+                include: [{ model: BookingItem, as: 'items' }],
+                transaction: t,
+            });
             if (!booking) throw new Error('Booking not found');
+
+            // ✅ Khi xoá booking → hoàn chỗ lại luôn
+            if (booking.items && booking.items.length > 0) {
+                for (const item of booking.items) {
+                    const tour = await Tour.findByPk(item.tourId, { transaction: t });
+                    if (tour) {
+                        const restored = Math.min(tour.available_people + item.quantity, tour.max_people);
+                        await tour.update({ available_people: restored }, { transaction: t });
+                    }
+                }
+            }
 
             await BookingItem.destroy({ where: { bookingId }, transaction: t });
             await booking.destroy({ transaction: t });
