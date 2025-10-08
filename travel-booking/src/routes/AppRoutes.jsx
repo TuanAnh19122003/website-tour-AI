@@ -7,6 +7,7 @@ import AuthLayout from '../layouts/AuthLayout';
 
 // Admin Pages
 import Dashboard from '../pages/admin/Dashboard';
+import RolePage from '../pages/admin/role/RolePage';
 
 // User Pages
 import Home from '../pages/user/Home';
@@ -26,6 +27,7 @@ function AppRoutes() {
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="roles" element={<RolePage />} />
                 </Route>
 
                 {/* Fallback */}

@@ -37,7 +37,7 @@ const LoginPage = () => {
             const { email, password } = values;
 
             const response = await axios.post(
-                `${apiUrl}/api/auth/login`,
+                `${apiUrl}/auth/login`,
                 { email, password },
                 { headers: { "Content-Type": "application/json" } }
             );

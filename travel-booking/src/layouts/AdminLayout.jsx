@@ -62,12 +62,12 @@ const AdminLayout = () => {
         {
             key: "sub-user-management",
             icon: <TeamOutlined />,
-            label: "Người dùng",
+            label: "Quản lý Người dùng",
             children: [
                 {
                     key: "users",
                     icon: <UserOutlined />,
-                    label: <Link to="/admin/users">Danh sách</Link>,
+                    label: <Link to="/admin/users">Người dùng</Link>,
                 },
                 {
                     key: "roles",

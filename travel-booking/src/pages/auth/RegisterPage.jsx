@@ -15,7 +15,7 @@ const RegisterPage = () => {
         setLoading(true);
         try {
             const res = await axios.post(
-                `${apiUrl}/api/auth/register`,
+                `${apiUrl}/auth/register`,
                 values
             );
             if (res.data.success) {
