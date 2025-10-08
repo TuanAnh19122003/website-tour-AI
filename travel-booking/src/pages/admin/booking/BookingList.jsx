@@ -3,6 +3,7 @@ import { Table, Button, Popconfirm, Space, Tooltip, Tag, Select } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
+import { formatDate, formatCurrency } from '../../../utils/helpers';
 
 const BookingList = ({ data, users = [], onEdit, onDelete, onView, pagination, onPageChange, API_URL, fetchBookings }) => {
 
@@ -38,13 +39,13 @@ const BookingList = ({ data, users = [], onEdit, onDelete, onView, pagination, o
             title: "Tổng tiền",
             dataIndex: "total_price",
             key: "total_price",
-            render: (val) => val ? `${val} đ` : '-'
+            render: (val) => val ? formatCurrency(Number(val)) : '-'
         },
         {
             title: "Ngày đặt",
             dataIndex: "booking_date",
             key: "booking_date",
-            render: (val) => val || '-'
+            render: (val) => val ? formatDate(val) : '-'
         },
         {
             title: "Trạng thái",

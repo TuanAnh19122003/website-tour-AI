@@ -37,6 +37,7 @@ class BookingController {
             }
 
             const { booking, approveUrl } = await BookingService.create(
+                req,
                 userId,
                 items,
                 totalPrice,

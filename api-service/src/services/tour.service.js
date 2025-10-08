@@ -84,22 +84,27 @@ class TourService {
 
     static async getDestinations() {
         const tours = await Tour.findAll({
-            attributes: ['location', 'image'],
+            attributes: ['location', 'image', 'slug'],
             where: { is_active: true }
         });
 
         const map = {};
         tours.forEach(t => {
             if (!map[t.location]) {
-                map[t.location] = t.image || '/default-destination.jpg';
+                map[t.location] = {
+                    image: t.image || 'default-destination.jpg',
+                    slug: t.slug
+                };
             }
         });
 
         return Object.keys(map).map(loc => ({
             location: loc,
-            image: map[loc]
+            image: map[loc].image,
+            slug: map[loc].slug
         }));
     }
+
 
     static async getFeatured() {
         return await Tour.findAll({

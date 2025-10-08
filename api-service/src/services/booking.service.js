@@ -40,45 +40,53 @@ class BookingService {
     }
 
     // ===================== TẠO BOOKING =====================
-    static async create(userId, items, totalPrice, note, paymentMethod = 'cod') {
+    static async create(req, userId, items, totalPrice, note = '', paymentMethod = 'cod') {
+        if (!userId) throw new Error("Missing userId");
+        if (!Array.isArray(items) || items.length === 0) throw new Error("Items cannot be empty");
+
+        const computedTotal = Number(totalPrice);
+        if (isNaN(computedTotal) || computedTotal <= 0) {
+            throw new Error("Invalid totalPrice");
+        }
+
         const tourIds = [...new Set(items.map(i => i.tourId))];
         const tours = await Tour.findAll({ where: { id: tourIds } });
         const tourMap = {};
         tours.forEach(t => { tourMap[t.id] = t.name; });
 
+        // Lấy origin của FE
+        const origin = req.get('origin') || `http://${req.hostname}:${req.socket.localPort}`;
+
         return await Booking.sequelize.transaction(async (t) => {
+            // Tạo booking chính
             const booking = await Booking.create({
                 userId,
-                total_price: totalPrice,
+                total_price: computedTotal.toFixed(2),
                 note,
                 paymentMethod,
                 status: paymentMethod === 'paypal' ? 'pending' : 'paid',
             }, { transaction: t });
 
-            const bookingItemsData = items.map((item) => ({
+            // Tạo booking items
+            const bookingItemsData = items.map(item => ({
                 bookingId: booking.id,
                 tourId: item.tourId,
-                quantity: item.quantity,
-                price: item.price,
+                quantity: Number(item.quantity),
+                price: Number(item.price),
             }));
-
             await BookingItem.bulkCreate(bookingItemsData, { transaction: t });
 
-            // Nếu COD thì không cần PayPal
-            if (paymentMethod === 'cod') {
-                return { booking };
-            }
+            if (paymentMethod === 'cod') return { booking };
 
-            // ===================== PAYPAL =====================
-            const itemsUSD = items.map(item => ({
+            // PayPal
+            const itemsUSD = bookingItemsData.map(item => ({
                 ...item,
-                unitAmount: parseFloat((item.price / 24000).toFixed(2)) // Quy đổi VND -> USD
+                unitAmount: parseFloat((item.price / 24000).toFixed(2)), // VND -> USD
             }));
 
-            const itemTotal = itemsUSD
+            const itemTotalUSD = itemsUSD
                 .reduce((sum, item) => sum + item.unitAmount * item.quantity, 0)
                 .toFixed(2);
-
             const request = new checkoutNodeJssdk.orders.OrdersCreateRequest();
             request.prefer('return=representation');
             request.requestBody({
@@ -86,20 +94,12 @@ class BookingService {
                 purchase_units: [{
                     amount: {
                         currency_code: 'USD',
-                        value: itemTotal,
-                        breakdown: {
-                            item_total: {
-                                currency_code: 'USD',
-                                value: itemTotal,
-                            },
-                        },
+                        value: itemTotalUSD,
+                        breakdown: { item_total: { currency_code: 'USD', value: itemTotalUSD } },
                     },
                     items: itemsUSD.map(item => ({
                         name: tourMap[item.tourId] || 'Tour du lịch',
-                        unit_amount: {
-                            currency_code: 'USD',
-                            value: item.unitAmount.toFixed(2),
-                        },
+                        unit_amount: { currency_code: 'USD', value: item.unitAmount.toFixed(2) },
                         quantity: item.quantity.toString(),
                     })),
                 }],
@@ -107,10 +107,11 @@ class BookingService {
                     brand_name: 'Tour Booking',
                     landing_page: 'LOGIN',
                     user_action: 'PAY_NOW',
-                    return_url: `http://localhost:3000/paypal-success?bookingId=${booking.id}`,
-                    cancel_url: `http://localhost:3000/payment-fail?bookingId=${booking.id}`,
+                    return_url: `${origin}/bookings/paypal-success?bookingId=${booking.id}`,
+                    cancel_url: `${origin}/bookings/payment-fail?bookingId=${booking.id}`,
                 },
             });
+
 
             const response = await paypalClient().execute(request);
             const paypalOrderId = response.result.id;
@@ -122,6 +123,7 @@ class BookingService {
             return { booking, approveUrl };
         });
     }
+
 
     // ===================== CẬP NHẬT BOOKING =====================
     static async update(bookingId, { userId, note, items }) {
