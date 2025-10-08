@@ -58,7 +58,7 @@ class BookingService {
         const origin = req.get('origin') || `http://${req.hostname}:${req.socket.localPort}`;
 
         return await Booking.sequelize.transaction(async (t) => {
-            // 1️⃣ Tạo booking chính
+            // Tạo booking chính
             const booking = await Booking.create({
                 userId,
                 total_price: computedTotal.toFixed(2),
@@ -67,7 +67,7 @@ class BookingService {
                 status: paymentMethod === 'paypal' ? 'pending' : 'paid',
             }, { transaction: t });
 
-            // 2️⃣ Tạo booking items
+            //Tạo booking items
             const bookingItemsData = items.map(item => ({
                 bookingId: booking.id,
                 tourId: item.tourId,
@@ -76,7 +76,7 @@ class BookingService {
             }));
             await BookingItem.bulkCreate(bookingItemsData, { transaction: t });
 
-            // 3️⃣ Giảm chỗ còn lại trong tours
+            //Giảm chỗ còn lại trong tours
             for (const item of bookingItemsData) {
                 const tour = await Tour.findByPk(item.tourId, { transaction: t });
                 if (!tour) throw new Error(`Tour with id ${item.tourId} not found`);
@@ -85,7 +85,7 @@ class BookingService {
                 await tour.update({ available_people: newAvailable }, { transaction: t });
             }
 
-            // 4️⃣ Thanh toán PayPal (nếu có)
+            // Thanh toán PayPal (nếu có)
             if (paymentMethod === 'cod') return { booking };
 
             const itemsUSD = bookingItemsData.map(item => ({
@@ -140,7 +140,7 @@ class BookingService {
         });
         if (!booking) throw new Error('Booking not found');
 
-        // 🔁 Nếu huỷ booking → hoàn chỗ lại
+        //Nếu huỷ booking → hoàn chỗ lại
         if (status === 'cancelled' && booking.items && booking.items.length > 0) {
             for (const item of booking.items) {
                 const tour = await Tour.findByPk(item.tourId);
@@ -165,7 +165,7 @@ class BookingService {
             });
             if (!booking) throw new Error('Booking not found');
 
-            // ✅ Khi xoá booking → hoàn chỗ lại luôn
+            //Khi xoá booking → hoàn chỗ lại luôn
             if (booking.items && booking.items.length > 0) {
                 for (const item of booking.items) {
                     const tour = await Tour.findByPk(item.tourId, { transaction: t });

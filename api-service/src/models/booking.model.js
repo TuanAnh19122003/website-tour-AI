@@ -9,7 +9,8 @@ const Booking = sequelize.define('Booking', {
     status: { type: DataTypes.ENUM('pending', 'paid', 'cancelled', 'completed'), defaultValue: 'pending' },
     paymentMethod: { type: DataTypes.ENUM('cod', 'paypal'), defaultValue: 'cod' },
     paypal_order_id: { type: DataTypes.STRING },
-    note: { type: DataTypes.TEXT }
+    note: { type: DataTypes.TEXT },
+    qrCode: { type: DataTypes.TEXT }
 }, {
     timestamps: true,
     tableName: 'bookings'

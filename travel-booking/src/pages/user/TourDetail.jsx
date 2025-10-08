@@ -64,7 +64,7 @@ const TourDetail = () => {
     }
     if (!tour) return <p>Không tìm thấy tour.</p>;
 
-    // 👉 Tính giá vé có giảm giá
+    //Tính giá vé có giảm giá
     const ticketPrice = tour.discount
         ? tour.price * (1 - tour.discount.percentage / 100)
         : tour.price;
@@ -84,17 +84,17 @@ const TourDetail = () => {
         try {
             setConfirmLoading(true);
 
-            // ✅ Tính giá mỗi vé
+            //Tính giá mỗi vé
             const ticketPrice = Number(
                 tour.discount
                     ? tour.price * (1 - tour.discount.percentage / 100)
                     : tour.price
             );
 
-            // ✅ Số lượng tối thiểu 1
+            // Số lượng tối thiểu 1
             const quantityNum = Number(quantity) || 1;
 
-            // ✅ Tạo mảng items
+            //Tạo mảng items
             const itemsPayload = [
                 {
                     tourId: Number(tour.id),
@@ -103,13 +103,13 @@ const TourDetail = () => {
                 },
             ];
 
-            // ✅ Tính tổng tiền chuẩn number
+            //Tính tổng tiền chuẩn number
             const totalPrice = itemsPayload.reduce(
                 (sum, item) => sum + Number(item.price) * Number(item.quantity),
                 0
             );
 
-            // ✅ Debug payload
+            // Debug payload
             console.log("Booking payload:", { userId: user.id, items: itemsPayload, totalPrice });
 
             const bookingData = {
@@ -119,7 +119,7 @@ const TourDetail = () => {
                 paymentMethod: "paypal",
             };
 
-            // ✅ Gửi request
+            //Gửi request
             const res = await axios.post(
                 "http://localhost:5000/api/bookings",
                 bookingData

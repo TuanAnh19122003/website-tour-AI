@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Table, Card, Spin, message, Tag, Empty } from "antd";
+import { Table, Card, Spin, message, Tag, Empty, Button, Modal, Image } from "antd";
 import axios from "axios";
 import { formatCurrency, formatDate } from "../../utils/helpers";
 
 const BookingHistory = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [qrModalVisible, setQrModalVisible] = useState(false);
+    const [selectedQr, setSelectedQr] = useState("");
     const API_URL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
@@ -72,6 +74,16 @@ const BookingHistory = () => {
         }
     };
 
+    const showQrModal = (qrCode) => {
+        setSelectedQr(qrCode);
+        setQrModalVisible(true);
+    };
+
+    const handleCloseModal = () => {
+        setQrModalVisible(false);
+        setSelectedQr("");
+    };
+
     return (
         <div style={{ padding: 24 }}>
             <h2>Lịch sử đặt tour của bạn</h2>
@@ -126,9 +138,36 @@ const BookingHistory = () => {
                         <h3 style={{ textAlign: "right", marginTop: 10 }}>
                             Tổng: {formatCurrency(Number(booking.total_price))}
                         </h3>
+
+                        {/* Nút mở Modal QR code */}
+                        {booking.qrCode && (
+                            <div style={{ textAlign: "center", marginTop: 20 }}>
+                                <Button type="primary" onClick={() => showQrModal(booking.qrCode)}>
+                                    Xem QR code check-in
+                                </Button>
+                            </div>
+                        )}
                     </Card>
                 ))
             )}
+
+            {/* Modal QR code */}
+            <Modal
+                title="QR code check-in"
+                visible={qrModalVisible}
+                onCancel={handleCloseModal}
+                footer={null}
+            >
+                {selectedQr && (
+                    <div style={{ textAlign: "center" }}>
+                        <Image
+                            width={200}
+                            src={selectedQr}
+                            alt="QR code"
+                        />
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };

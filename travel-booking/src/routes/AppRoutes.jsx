@@ -14,6 +14,11 @@ import DiscountPage from '../pages/admin/discount/DiscountPage';
 import TourPage from '../pages/admin/tour/TourPage';
 import ReviewPage from '../pages/admin/review/ReviewPage';
 import BookingPage from '../pages/admin/booking/BookingPage';
+
+
+// User Pages
+import Home from '../pages/user/Home';
+import CheckinPage from '../pages/user/CheckinPage';
 import Profile from '../pages/user/Profile';
 import About from '../pages/user/About';
 import TourDetail from '../pages/user/TourDetail';
@@ -23,12 +28,10 @@ import Destinations from '../pages/user/Destinations';
 import BookingSuccess from '../pages/user/BookingSuccess';
 import BookingCancel from '../pages/user/BookingCancel';
 
-// User Pages
-import Home from '../pages/user/Home';
-
 //Auth
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+
 
 
 function AppRoutes() {
@@ -46,6 +49,7 @@ function AppRoutes() {
                     <Route path='/destinations' element={<Destinations />} />
                     <Route path="/bookings/paypal-success" element={<BookingSuccess />} />
                     <Route path="/bookings/paypal-cancel" element={<BookingCancel />} />
+                    <Route path="/checkin/:bookingId" element={<CheckinPage />} />
                 </Route>
 
                 {/* Admin Routes */}
