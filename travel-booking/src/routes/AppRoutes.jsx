@@ -8,12 +8,14 @@ import AuthLayout from '../layouts/AuthLayout';
 // Admin Pages
 import Dashboard from '../pages/admin/Dashboard';
 import RolePage from '../pages/admin/role/RolePage';
+import UserPage from '../pages/admin/user/UserPage';
 
 // User Pages
 import Home from '../pages/user/Home';
 
 //Auth
 import LoginPage from '../pages/auth/LoginPage';
+
 
 function AppRoutes() {
     return (
@@ -28,6 +30,7 @@ function AppRoutes() {
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="roles" element={<RolePage />} />
+                    <Route path="users" element={<UserPage />} />
                 </Route>
 
                 {/* Fallback */}
