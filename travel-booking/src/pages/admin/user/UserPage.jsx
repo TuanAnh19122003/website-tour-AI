@@ -168,7 +168,7 @@ const UserPage = () => {
                 open={open}
                 onCancel={() => setOpen(false)}
                 footer={null}
-                destroyOnClose
+                destroyOnHidden
                 title={editingUser ? 'Cập nhật người dùng' : 'Thêm người dùng'}
             >
                 <UserForm
