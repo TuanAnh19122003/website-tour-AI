@@ -10,6 +10,7 @@ const reviewRouter = require('./review.routes');
 const bookingRouter = require('./booking.routes');
 const paypalRoutes = require('./paypal.routes');
 const authRouter = require('./auth.routes');
+const aiRouter = require('./ai.routes');
 
 router.use('/roles', roleRouter);
 router.use('/users', userRouter);
@@ -20,5 +21,6 @@ router.use('/reviews', reviewRouter);
 router.use('/bookings', bookingRouter);
 router.use('/paypal', paypalRoutes);
 router.use('/auth', authRouter);
+router.use('/ai', aiRouter);
 
 module.exports = router;

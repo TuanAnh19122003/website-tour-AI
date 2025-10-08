@@ -10,6 +10,7 @@ import {
 } from "@ant-design/icons";
 import { jwtDecode } from "jwt-decode";
 import logo from "../assets/logo.png";
+import ChatWidget from '../components/ChatWidget';
 
 const { Header, Content, Footer } = Layout;
 
@@ -204,6 +205,7 @@ const UserLayout = () => {
                 <div>©{new Date().getFullYear()} Tour Việt Nam. All rights reserved.</div>
                 <div>Hotline: 0123 456 789 | Email: support@tourvn.com</div>
             </Footer>
+            <ChatWidget />
         </Layout>
     );
 };
