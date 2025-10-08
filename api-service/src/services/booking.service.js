@@ -153,9 +153,9 @@ class BookingService {
 
     // ===================== CẬP NHẬT TRẠNG THÁI BOOKING =====================
     static async updateBookingStatus(bookingId, status) {
+        if (!bookingId) throw new Error('Invalid booking ID');
         const booking = await Booking.findByPk(bookingId);
         if (!booking) throw new Error('Booking not found');
-
         booking.status = status;
         await booking.save();
         return booking;

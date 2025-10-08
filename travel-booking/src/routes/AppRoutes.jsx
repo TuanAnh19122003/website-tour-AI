@@ -13,14 +13,13 @@ import ContactPage from '../pages/admin/contact/ContactPage';
 import DiscountPage from '../pages/admin/discount/DiscountPage';
 import TourPage from '../pages/admin/tour/TourPage';
 import ReviewPage from '../pages/admin/review/ReviewPage';
+import BookingPage from '../pages/admin/booking/BookingPage';
 
 // User Pages
 import Home from '../pages/user/Home';
 
 //Auth
 import LoginPage from '../pages/auth/LoginPage';
-
-
 
 function AppRoutes() {
     return (
@@ -40,6 +39,7 @@ function AppRoutes() {
                     <Route path="discounts" element={<DiscountPage />} />
                     <Route path="tours" element={<TourPage />} />
                     <Route path="reviews" element={<ReviewPage />} />
+                    <Route path="bookings" element={<BookingPage />} />
                 </Route>
 
                 {/* Fallback */}
