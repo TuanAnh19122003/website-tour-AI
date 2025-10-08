@@ -1,31 +1,38 @@
 module.exports = (db) => {
     const { Role, User, Tour, Discount, Booking, BookingItem, Review } = db;
 
-    // ========== Role ↔ User ==========
-    User.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
-    Role.hasMany(User, { foreignKey: 'roleId', as: 'users' });
+    const fk = (name, allowNull = false, onDelete = 'CASCADE', onUpdate = 'CASCADE') => ({
+        foreignKey: { name, allowNull },
+        constraints: true,
+        onDelete,
+        onUpdate
+    });
 
-    // ========== User ↔ Booking ==========
-    Booking.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-    User.hasMany(Booking, { foreignKey: 'userId', as: 'bookings' });
+    // ===== Role ↔ User =====
+    Role.hasMany(User, { ...fk('roleId'), as: 'users' });
+    User.belongsTo(Role, { ...fk('roleId'), as: 'role' });
 
-    // ========== Discount ↔ Tour ==========
-    Tour.belongsTo(Discount, { foreignKey: 'discountId', as: 'discount' });
-    Discount.hasMany(Tour, { foreignKey: 'discountId', as: 'tours' });
+    // ===== User ↔ Booking =====
+    User.hasMany(Booking, { ...fk('userId'), as: 'bookings' });
+    Booking.belongsTo(User, { ...fk('userId'), as: 'user' });
 
-    // ========== Booking ↔ BookingItem ==========
-    Booking.hasMany(BookingItem, { foreignKey: 'bookingId', as: 'items' });
-    BookingItem.belongsTo(Booking, { foreignKey: 'bookingId', as: 'booking' });
+    // ===== Discount ↔ Tour =====
+    Discount.hasMany(Tour, { ...fk('discountId', true, 'SET NULL'), as: 'tours' });
+    Tour.belongsTo(Discount, { ...fk('discountId', true, 'SET NULL'), as: 'discount' });
 
-    // ========== Tour ↔ BookingItem ==========
-    Tour.hasMany(BookingItem, { foreignKey: 'tourId', as: 'bookingItems' });
-    BookingItem.belongsTo(Tour, { foreignKey: 'tourId', as: 'tour' });
+    // ===== Booking ↔ BookingItem =====
+    Booking.hasMany(BookingItem, { ...fk('bookingId'), as: 'items' });
+    BookingItem.belongsTo(Booking, { ...fk('bookingId'), as: 'booking' });
 
-    // ========== User ↔ Review ==========
-    User.hasMany(Review, { foreignKey: 'userId', as: 'reviews' });
-    Review.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+    // ===== Tour ↔ BookingItem =====
+    Tour.hasMany(BookingItem, { ...fk('tourId'), as: 'bookingItems' });
+    BookingItem.belongsTo(Tour, { ...fk('tourId'), as: 'tour' });
 
-    // ========== Tour ↔ Review ==========
-    Tour.hasMany(Review, { foreignKey: 'tourId', as: 'reviews' });
-    Review.belongsTo(Tour, { foreignKey: 'tourId', as: 'tour' });
+    // ===== User ↔ Review =====
+    User.hasMany(Review, { ...fk('userId'), as: 'reviews' });
+    Review.belongsTo(User, { ...fk('userId'), as: 'user' });
+
+    // ===== Tour ↔ Review =====
+    Tour.hasMany(Review, { ...fk('tourId'), as: 'reviews' });
+    Review.belongsTo(Tour, { ...fk('tourId'), as: 'tour' });
 };
