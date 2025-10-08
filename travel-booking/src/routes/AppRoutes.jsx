@@ -10,13 +10,13 @@ import Dashboard from '../pages/admin/Dashboard';
 import RolePage from '../pages/admin/role/RolePage';
 import UserPage from '../pages/admin/user/UserPage';
 import ContactPage from '../pages/admin/contact/ContactPage';
+import DiscountPage from '../pages/admin/discount/DiscountPage';
 
 // User Pages
 import Home from '../pages/user/Home';
 
 //Auth
 import LoginPage from '../pages/auth/LoginPage';
-
 
 function AppRoutes() {
     return (
@@ -33,6 +33,7 @@ function AppRoutes() {
                     <Route path="roles" element={<RolePage />} />
                     <Route path="users" element={<UserPage />} />
                     <Route path="contacts" element={<ContactPage />} />
+                    <Route path="discounts" element={<DiscountPage />} />
                 </Route>
 
                 {/* Fallback */}
